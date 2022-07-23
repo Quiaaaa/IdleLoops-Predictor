@@ -10,9 +10,8 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @run-at       document-idle
-// @inject-into  page
 // ==/UserScript==
-
+window.eval(`
 /** @namespace */
 const Koviko = {
   /**
@@ -34,7 +33,7 @@ const Koviko = {
    * @prop {string} name Name of the action
    * @prop {number} expMult Experience multiplier (typically 1)
    * @prop {number} townNum The town to which the action belongs
-   * @prop {string} varName The unique identifier used for variables in the `towns` array
+   * @prop {string} varName The unique identifier used for variables in the \`towns\` array
    * @prop {number} [segments] Amount of segments per loop
    * @prop {number} [dungeonNum] The dungeon to which the action belongs
    * @prop {Object.<string, number>} stats Stats that affect and are affected by the action
@@ -308,7 +307,7 @@ const Koviko = {
      * Progression
      * @typedef {Object} Koviko.Predictor~Progression
      * @prop {number} completed The amount of total segments completed
-     * @prop {number} progress The amount of progress in segments beyond that already represented in `completed`
+     * @prop {number} progress The amount of progress in segments beyond that already represented in \`completed\`
      * @prop {number} total The amount of successful loops ever completed
      */
 
@@ -356,21 +355,21 @@ const Koviko = {
       if(typeof localStorage !== "undefined") { 
         if (localStorage.getItem('timePrecision') !== undefined) {
           var loadedVal = localStorage.getItem('timePrecision');
-          $('#updateTimePrecision').val(loadedVal);
+          \$('#updateTimePrecision').val(loadedVal);
         }
         if (localStorage.getItem("actionWidth")!=="undefined") {
           let tmpVal=localStorage.getItem("actionWidth");
           document.getElementById("actionsColumn").style.width=tmpVal+"px";
           document.getElementById("nextActionsListContainer").style.width=(tmpVal-120)+"px";
-          $('#actionWidth').val(tmpVal);
+          \$('#actionWidth').val(tmpVal);
         }
       }
-      // Prepare `updateNextActions` to be hooked
+      // Prepare \`updateNextActions\` to be hooked
       if (!view._updateNextActions) {
         view._updateNextActions = view.updateNextActions;
       }
 
-      // Hook `updateNextActions` with the predictor's update function
+      // Hook \`updateNextActions\` with the predictor's update function
       view.updateNextActions = () => {
         view._updateNextActions();
         this.update(actions.next, container);
@@ -402,7 +401,7 @@ const Koviko = {
       let style = document.getElementById('koviko');
 
       // Build the CSS
-      let css = `
+      let css = \`
       .nextActionContainer { width: auto!important; padding: 0 4px;  grid-template: "a b . c" / auto auto 1fr auto }
       .nextActionContainer[style~='flex;'] {display: grid!important;}
       .nextActionContainer > div:first-child { width: 70px; }
@@ -434,7 +433,7 @@ const Koviko = {
       ul.koviko .mind{color:#006400}
       ul.koviko .stone{color:#ff0000}
       ul.koviko .heroism{color:#ff0000}
-      `;
+      \`;
       document.getElementById("actionsColumn").style.width="500px";
       document.getElementById("nextActionsListContainer").style.width="380px";
 
@@ -473,20 +472,20 @@ const Koviko = {
       }
 
       //Adds more to the Options panel
-      $('#menu div:nth-child(4) .showthisH').append("<div id='preditorSettings'><br /><b>Predictor Settings</b></div>")
-      $('#preditorSettings').append("<br /><label>Degrees of precision on Time</label><input id='updateTimePrecision' type='number' value='1' min='0' max='10' style='width: 50px;'>");
-      $('#updateTimePrecision').focusout(function() {
-          if($(this).val() > 10) {
-              $(this).val(10);
+      \$('#menu div:nth-child(4) .showthisH').append("<div id='preditorSettings'><br /><b>Predictor Settings</b></div>")
+      \$('#preditorSettings').append("<br /><label>Degrees of precision on Time</label><input id='updateTimePrecision' type='number' value='1' min='0' max='10' style='width: 50px;'>");
+      \$('#updateTimePrecision').focusout(function() {
+          if(\$(this).val() > 10) {
+              \$(this).val(10);
           }
-          if($(this).val() < 1) {
-              $(this).val(1);
+          if(\$(this).val() < 1) {
+              \$(this).val(1);
           }
-          localStorage.setItem('timePrecision', $(this).val());
+          localStorage.setItem('timePrecision', \$(this).val());
       });
-      $('#preditorSettings').append("<br /><label>Width of the Action List</label><input id='actionWidth' type='number' value='500' min='100' max='4000' style='width: 50px; float:right'>");
-      $('#actionWidth').focusout(function() {
-          let tmpVal=$(this).val();
+      \$('#preditorSettings').append("<br /><label>Width of the Action List</label><input id='actionWidth' type='number' value='500' min='100' max='4000' style='width: 50px; float:right'>");
+      \$('#actionWidth').focusout(function() {
+          let tmpVal=\$(this).val();
           localStorage.setItem('actionWidth',tmpVal );       
           document.getElementById("actionsColumn").style.width=tmpVal+"px";
           document.getElementById("nextActionsListContainer").style.width=(tmpVal-120)+"px";
@@ -1185,7 +1184,7 @@ const Koviko = {
        *This is used to see when the loop becomes invalid due to mana cost
        */
       //This is the precision of the Time field
-      let precisionForTime = $('#updateTimePrecision').val();
+      let precisionForTime = \$('#updateTimePrecision').val();
 
       // Initialize all affected resources
       affected.forEach(x => state.resources[x] || (state.resources[x] = 0));
@@ -1211,7 +1210,7 @@ const Koviko = {
           /** @var {number} */
           let currentMana;
 
-          // Make sure that the loop is properly represented in `state.progress`
+          // Make sure that the loop is properly represented in \`state.progress\`
           if (prediction.loop && !(prediction.name in state.progress)) {
             /** @var {Koviko.Predictor~Progression} */
             state.progress[prediction.name] = {
@@ -1340,7 +1339,7 @@ const Koviko = {
             end: Koviko.globals.getLevelFromExp(stats[i].value),
           };
 
-          tooltip += '<tr><td><b>' + _txt(`stats>${i}>short_form`).toUpperCase() + '</b></td><td>' + intToString(level.end, 1) + '</td><td>(+' + intToString(level.end - level.start, 1) + ')</td></tr>';
+          tooltip += '<tr><td><b>' + _txt(\`stats>\${i}>short_form\`).toUpperCase() + '</b></td><td>' + intToString(level.end, 1) + '</td><td>(+' + intToString(level.end - level.start, 1) + ')</td></tr>';
         }
       }
 
@@ -1428,7 +1427,7 @@ const Koviko = {
         if ( resources[name] != 0 ) return ('<li class='+name+'>'+resources[name].toLocaleString('en', {useGrouping:true})+'</li>');
         else return "";
       }).join('');
-      return `<ul class='koviko ${isValid}'>` + Affec + `</ul><div class='koviko showthis'><table>${tooltip || '<b>N/A</b>'}</table></div>`;
+      return \`<ul class='koviko \${isValid}'>\` + Affec + \`</ul><div class='koviko showthis'><table>\${tooltip || '<b>N/A</b>'}</table></div>\`;
     };
 
     /**
@@ -1545,7 +1544,7 @@ const Koviko = {
         try {
           Koviko.globals[varName] = eval(varName);
         } catch (e) {
-          console.error(`Unable to retrieve global '${varName}'.`);
+          console.error(\`Unable to retrieve global '\${varName}'.\`);
           Koviko.hasRan = false;
           return;
         }
@@ -1559,4 +1558,4 @@ const Koviko = {
 // Run the code!
 //window.addEventListener('load', Koviko.run);
 setTimeout(() => document.readyState == 'complete' && Koviko.run(), 2000); // If it hasn't already ran in a couple of seconds, see if it can run
-
+`);
