@@ -216,7 +216,7 @@ const Koviko = {
       const soulstoneBonus = stats[statName].soulstone ? calcSoulstoneMult(stats[statName].soulstone) : 1;
       return soulstoneBonus * (1 + Math.pow(getLevelFromTalent(t[statName]), 0.4) / 3);
     }
-  
+
   },
 
   /** A collection of attributes and a comparison of those attributes from one snapshot to the next. */
@@ -352,7 +352,7 @@ const Koviko = {
       this.initStyle();
       this.initElements()
       this.initPredictions();
-      if(typeof localStorage !== "undefined") { 
+      if(typeof localStorage !== "undefined") {
         if (localStorage.getItem('timePrecision') !== undefined) {
           var loadedVal = localStorage.getItem('timePrecision');
           \$('#updateTimePrecision').val(loadedVal);
@@ -402,11 +402,14 @@ const Koviko = {
 
       // Build the CSS
       let css = \`
+
       .nextActionContainer { width: auto!important; padding: 0 4px;  grid-template: "a b . c" / auto auto 1fr auto }
       .nextActionContainer[style~='flex;'] {display: grid!important;}
-      .nextActionContainer > div:first-child { width: 70px; }
+      .nextActionContainer > div:first-child { width: 70px; cursor:pointer;}
       .nextActionContainer > div:nth-child(2) { width: 120px; text-align: right; grid-area: c }
       .koviko.valid { grid-area: b; }
+      .nextActionContainer > div:first-child:hover img {filter: invert(.5) sepia(1) saturate(5) hue-rotate(270deg);}
+      .target > div:first-child:hover img {filter: invert(.5) sepia(1) saturate(5) hue-rotate(140deg);}
       #nextActionsList{height:100%!important; overflow-y:scroll;}
       #curActionsListContainer{width:120px!important; z-index: 100;}
       #nextActionsList:hover{margin-left:-40%;padding-left:40%}
@@ -486,7 +489,7 @@ const Koviko = {
       \$('#preditorSettings').append("<br /><label>Width of the Action List</label><input id='actionWidth' type='number' value='500' min='100' max='4000' style='width: 50px; float:right'>");
       \$('#actionWidth').focusout(function() {
           let tmpVal=\$(this).val();
-          localStorage.setItem('actionWidth',tmpVal );       
+          localStorage.setItem('actionWidth',tmpVal );
           document.getElementById("actionsColumn").style.width=tmpVal+"px";
           document.getElementById("nextActionsListContainer").style.width=(tmpVal-120)+"px";
       });
@@ -558,8 +561,22 @@ const Koviko = {
 
         getRewardSS: (dNum) => Math.floor(Math.pow(10, dNum) * Math.pow(1 + getSkillLevel("Divine") / 60, 0.25)),
 
+
+        setTargetAction: (icon, name) => {
+          if(name === this.target[1]){
+            this.target = ['SS', 'SS'];
+          } else{
+            this.target = [icon, name];
+          }
+          view.updateNextActions();
+        }
+
         getStatProgress: (p, a, s, offset) => (1 + g.getLevelFromExp(s[a.loopStats[(p.completed + offset) % a.loopStats.length]]) / 100),
+
       });
+
+      // Set default target
+      this.target = ['SS', 'SS'];
 
       // Alias the globals to a shorter variable name
       const g = Koviko.globals;
@@ -587,7 +604,7 @@ const Koviko = {
           let buyMana = Math.min(spendGold * g.Action.BuyManaChallenge.goldCost(), totalMerchantMana-(r.manaBought||0));
           r.mana+=buyMana;
           r.manaBought= (r.manaBought||0)+buyMana;
-          r.gold-=spendGold; 
+          r.gold-=spendGold;
         }},
         'Meet People': {},
         'Train Strength': {},
@@ -609,7 +626,7 @@ const Koviko = {
         'Start Journey': { effect: (r) => (r.supplies = (r.supplies || 0) - 1, r.town =1), canStart: r => r.supplies >= 1},
         'Open Rift': { effect: (r,k) => (r.supplies = 0, r.town =5, k.dark+=1000)},
 		'Hitch Ride':{ effect: (r,k) => ( r.town =2)},
-	
+
         // Forest Path
         'Explore Forest': {},
         'Wild Mana': { affected: ['mana'], effect: (r) => {
@@ -1174,6 +1191,14 @@ const Koviko = {
       let totalTicks = 0;
 
       /**
+       * Completed actions of the tracked type
+       * @var {number}
+       */
+      let targetActions = 0;
+      
+      const [targetIcon, targetName] = this.target;
+
+      /**
        * All affected resources of the current action list
        * @var {Array.<string>}
        */
@@ -1219,9 +1244,10 @@ const Koviko = {
               total: Koviko.globals.towns[prediction.action.townNum]['total' + prediction.action.varName],
             };
           }
-
+          // Scope the loop variable outside the for loop, so we can read how many actions actually completed
+          let loop = 0;
           // Predict each loop in sequence
-          for (let loop = 0; loop < listedAction.loops; loop++) {
+          for (loop; loop < listedAction.loops; loop++) {
             let canStart = typeof(prediction.canStart) === "function" ? prediction.canStart(state.resources) : prediction.canStart;
             if (!canStart) { isValid = false; }
             if ( !canStart || listedAction.disabled ) { break; }
@@ -1274,10 +1300,17 @@ const Koviko = {
             snapshots[i].snap(state[i]);
           }
 
+          if (listedAction.name === targetName) {
+            targetActions = loop;
+          }
+
           // Update the view
           if (div) {
-            div.className += ' showthat';
+            div.className += ' showthat' + (listedAction.name === targetName ? ' target' : '');
             div.innerHTML += this.template(listedAction.name, affected, state.resources, snapshots, isValid);
+            // Get the icon and listen to clicks on it
+            let setTarget = this.helpers.setTargetAction;
+            div.querySelector(':scope > div').onclick = function(x) {setTarget(this.querySelector('img').outerHTML, listedAction.name)};
           }
         }
       });
@@ -1291,9 +1324,15 @@ const Koviko = {
       while(ms.toString().length < precisionForTime) { ms = "0" + ms; }
 
       let totalTime = ('0' + h).slice(-2) + ":" + ('0' + m).slice(-2) + ":" + ('0' + s).slice(-2) + "." + ms;
-      let dungeonEquilibrium = Math.min(Math.sqrt(total / 200000),1);
-      let soulStonesPerMinute = dungeonEquilibrium*state.resources.soul / totalTicks * 60;
-      container && (this.totalDisplay.innerHTML = intToString(total) + " | " + totalTime + " | " + soulStonesPerMinute.toFixed(2) + " SS/min");
+
+
+      if(targetName === 'SS') {
+        // Calculate expected soul stones per run at equilibrium
+        targetActions = Math.min(total / 200000,1) * (state.resources.soul || 0)
+      };
+      
+      container && (this.totalDisplay.innerHTML = intToString(total) + " | " + totalTime + " | " + (targetActions / totalTicks * 60).toFixed(2) + " " + targetIcon + "/min");
+
 
       if (this.resourcePerMinute>soulStonesPerMinute) {
         this.totalDisplay.style='color: #FF0000';
