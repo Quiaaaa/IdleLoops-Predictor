@@ -569,7 +569,7 @@ const Koviko = {
             this.target = [icon, name];
           }
           view.updateNextActions();
-        }
+        },
 
         getStatProgress: (p, a, s, offset) => (1 + g.getLevelFromExp(s[a.loopStats[(p.completed + offset) % a.loopStats.length]]) / 100),
 
@@ -1330,16 +1330,18 @@ const Koviko = {
         // Calculate expected soul stones per run at equilibrium
         targetActions = Math.min(total / 200000,1) * (state.resources.soul || 0)
       };
+
+      let resourcePerMinute = (targetActions / totalTicks * 60).toFixed(2)
       
-      container && (this.totalDisplay.innerHTML = intToString(total) + " | " + totalTime + " | " + (targetActions / totalTicks * 60).toFixed(2) + " " + targetIcon + "/min");
+      container && (this.totalDisplay.innerHTML = intToString(total) + " | " + totalTime + " | " + resourcePerMinute + " " + targetIcon + "/min");
 
 
-      if (this.resourcePerMinute>soulStonesPerMinute) {
+      if (this.resourcePerMinute > resourcePerMinute) {
         this.totalDisplay.style='color: #FF0000';
       } else {
         this.totalDisplay.style='color: 8293ff'
       }
-     this.resourcePerMinute=soulStonesPerMinute;
+     this.resourcePerMinute = resourcePerMinute;
 
       // Log useful debugging data
       if (isDebug) {
