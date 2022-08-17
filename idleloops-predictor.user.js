@@ -387,6 +387,7 @@ const Koviko = {
       this.initStyle();
       this.initElements()
       this.initPredictions();
+      this.state;
       if(typeof localStorage !== "undefined") { 
         if (localStorage.getItem('timePrecision') !== null) {
           var loadedVal = localStorage.getItem('timePrecision');
@@ -418,7 +419,7 @@ const Koviko = {
       // Hook \`updateNextActions\` with the predictor's update function
       view.updateNextActions = () => {
         view._updateNextActions();
-        this.update(actions.next, container);
+        this.state = this.update(actions.next, container);
       };
 
       // Prepare stopGame to be hooked
@@ -1606,6 +1607,7 @@ const Koviko = {
           total: total
         });
       }
+      return state;
     }
 
     getShortSkill(name) {
